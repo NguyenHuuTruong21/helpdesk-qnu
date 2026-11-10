@@ -1,0 +1,126 @@
+<!-- Trang tạo form nhập -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{layout/fragments :: head('Gửi phản hồi')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<div th:replace="~{layout/fragments :: navbar}"></div>
+<div th:replace="~{layout/fragments :: alerts}"></div>
+
+<main class="container py-4 flex-grow-1">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a th:href="@{/user/home}">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/user/feedbacks}">Phản hồi của tôi</a></li>
+                    <li class="breadcrumb-item active">Gửi phản hồi mới</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                    <h4 class="fw-bold mb-1">
+                        <i class="bi bi-plus-circle text-primary me-1"></i>
+                        Gửi phản hồi mới
+                    </h4>
+                    <p class="text-muted small mb-0">
+                        Vui lòng điền đầy đủ thông tin để được hỗ trợ nhanh nhất
+                    </p>
+                </div>
+
+                <div class="card-body p-4">
+                    <form th:action="@{/user/feedbacks/new}"
+                          th:object="${feedbackRequest}"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <!-- Tiêu đề -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Tiêu đề <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" th:field="*{title}" class="form-control form-control-lg"
+                                   placeholder="VD: Không đăng nhập được Wifi KTX" required>
+                            <div th:if="${#fields.hasErrors('title')}"
+                                 th:errors="*{title}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Danh mục -->
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Danh mục <span class="text-danger">*</span>
+                                </label>
+                                <select th:field="*{category}" class="form-select" required>
+                                    <option value="">-- Chọn danh mục --</option>
+                                    <option th:each="c : ${categories}"
+                                            th:value="${c}"
+                                            th:text="${c.label}">Học vụ</option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('category')}"
+                                     th:errors="*{category}" class="text-danger small mt-1"></div>
+                            </div>
+
+                            <!-- Mức ưu tiên -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-semibold">Mức ưu tiên</label>
+                                <select th:field="*{priority}" class="form-select">
+                                    <option value="1">🟢 Thấp</option>
+                                    <option value="2">🟡 Bình thường</option>
+                                    <option value="3">🔴 Cao</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Nội dung -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Nội dung chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <textarea th:field="*{content}" class="form-control" rows="6"
+                                      placeholder="Mô tả chi tiết vấn đề bạn gặp phải, càng cụ thể càng tốt..."
+                                      required></textarea>
+                            <div class="form-text small">
+                                <i class="bi bi-info-circle"></i>
+                                Tối thiểu 10 ký tự, tối đa 5000 ký tự.
+                            </div>
+                            <div th:if="${#fields.hasErrors('content')}"
+                                 th:errors="*{content}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <!-- File đính kèm -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="bi bi-paperclip"></i> Tệp đính kèm
+                                <span class="text-muted fw-normal">(không bắt buộc)</span>
+                            </label>
+                            <input type="file" th:field="*{attachment}" class="form-control"
+                                   accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip">
+                            <div class="form-text small">
+                                Định dạng: JPG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX, TXT, ZIP. Tối đa 5MB.
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between gap-2">
+                            <a th:href="@{/user/feedbacks}" class="btn btn-light border">
+                                <i class="bi bi-arrow-left me-1"></i> Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-send me-1"></i> Gửi phản hồi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+</body>
+</html>

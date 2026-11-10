@@ -1,0 +1,252 @@
+<!-- Trang chi tiết phản hồi User -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{layout/fragments :: head('Xử lý phản hồi')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<div th:replace="~{layout/fragments :: navbar}"></div>
+<div th:replace="~{layout/fragments :: alerts}"></div>
+
+<main class="container py-4 flex-grow-1">
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a th:href="@{/admin/dashboard}">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a th:href="@{admin/feedback-list}">Phản hồi của tôi</a></li>
+            <li class="breadcrumb-item"><a th:href="@{/admin/feedbacks}">Quản lý phản hồi</a></li>
+            <li class="breadcrumb-item active">Xử lý #<span th:text="${feedback.id}">1</span></li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Cột trái: Nội dung -->
+        <div class="col-lg-7">
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                        <h4 class="fw-bold mb-0" th:text="${feedback.title}">Tiêu đề</h4>
+                        <span class="badge fs-6"
+                              th:classappend="'bg-' + ${feedback.status.badgeClass}"
+                              th:text="${feedback.status.label}">Chờ xử lý</span>
+                    </div>
+
+                    <!-- Meta -->
+                    <div class="meta-info mb-4">
+                        <div class="meta-item">
+                            <i class="bi bi-person-circle"></i>
+                            <span th:text="${feedback.displayName}">Nguyễn Văn A</span>
+                        </div>
+                        <div class="meta-item" th:if="${feedback.displayEmail != null}">
+                            <i class="bi bi-envelope"></i>
+                            <span th:text="${feedback.displayEmail}">email@qnu.edu.vn</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-tag"></i>
+                            <span th:text="${feedback.category?.label}">Học vụ</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${#temporals.format(feedback.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                01/01/2025
+                            </span>
+                        </div>
+                        <div class="meta-item" th:if="${feedback.priority == 3}">
+                            <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                            <span class="text-danger fw-semibold">Ưu tiên cao</span>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung -->
+                    <div class="content-box">
+                        <p class="mb-0" style="white-space: pre-wrap;"
+                           th:text="${feedback.content}">Nội dung</p>
+                    </div>
+
+                    <!-- File đính kèm -->
+                    <div th:if="${feedback.attachment != null}" class="mt-3">
+                        <a th:href="@{'/files/download/' + ${feedback.id}}"
+                           class="attachment-link">
+                            <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                            <div>
+                                <div class="fw-semibold"
+                                     th:text="${feedback.attachmentName != null} ? ${feedback.attachmentName} : 'Tệp đính kèm'">
+                                    Tệp đính kèm
+                                </div>
+                                <small class="text-muted">Nhấn để tải xuống</small>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+                        <!-- Lịch hẹn gặp trực tiếp (Nếu có) -->
+            <div th:if="${feedback.appointmentTime != null}" class="alert alert-warning border-warning mb-4 shadow-sm">
+                <h5 class="fw-bold"><i class="bi bi-calendar-event"></i> Thông báo Lịch hẹn gặp trực tiếp</h5>
+                <p class="mb-1">Đã hẹn gặp sinh viên:</p>
+                <ul class="mb-0">
+                    <li><strong>Phòng:</strong> <span th:text="${feedback.appointmentRoom}"></span></li>
+                    <li><strong>Thời gian:</strong> <span th:text="${#temporals.format(feedback.appointmentTime, 'HH:mm - dd/MM/yyyy')}"></span></li>
+                    <li><strong>Cán bộ tiếp:</strong> <span th:text="${feedback.appointmentStaff}"></span></li>
+                </ul>
+            </div>
+
+            <!-- Form tạo lịch hẹn (Dành cho Admin) -->
+            <div class="card border-0 shadow-sm mb-4 bg-light">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3"><i class="bi bi-calendar-plus"></i> Tạo lịch hẹn gặp mặt</h6>
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/appointment'}" method="post" class="row g-2">
+                        <div class="col-md-4">
+                            <input type="text" name="room" class="form-control form-control-sm" placeholder="Phòng (VD: A2.1)" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="datetime-local" name="time" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" name="staff" class="form-control form-control-sm" placeholder="Cán bộ tiếp" required>
+                        </div>
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-sm btn-warning w-100" title="Tạo lịch hẹn"><i class="bi bi-check2"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Live Chat -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-chat-dots-fill text-primary"></i> Trao đổi với Sinh viên (Live Chat)</h6>
+                </div>
+                <div class="card-body" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;" id="chatBox">
+                    <div th:if="${#lists.isEmpty(replies)}" class="text-center text-muted mt-5">
+                        <small>Chưa có tin nhắn nào. Hãy gửi phản hồi đầu tiên!</small>
+                    </div>
+                    
+                    <!-- Lặp tin nhắn -->
+                    <div th:each="r : ${replies}" class="d-flex mb-3" 
+                        th:classappend="${r.admin != null ? 'justify-content-start' : 'justify-content-end'}">
+                        
+                        <div class="p-3 rounded shadow-sm" 
+                            th:classappend="${r.admin != null ? 'bg-white border text-dark' : 'bg-primary text-white'}"
+                            style="max-width: 75%;">
+                            
+                            <!-- Tên người gửi -->
+                            <div class="small fw-bold mb-1" 
+                                th:text="${r.admin != null ? r.admin.fullName : 'Bạn'}"></div>
+                                
+                            <!-- Nội dung tin nhắn -->
+                            <div th:text="${r.content}"></div>
+                            
+                            <!-- Thời gian -->
+                            <div class="text-end small mt-1" style="font-size: 0.7rem;"
+                                th:classappend="${r.admin != null ? 'text-muted' : 'text-white-50'}"
+                                th:text="${#temporals.format(r.createdAt, 'HH:mm dd/MM')}"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Ô nhập chat -->
+                <div class="card-footer bg-white" th:if="${feedback.status.name() != 'RESOLVED'}">
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/chat'}" method="post" class="d-flex gap-2">
+                        <input type="text" name="message" class="form-control" placeholder="Nhập tin nhắn trả lời..." required autocomplete="off">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form cập nhật trạng thái cũ (Giữ lại để đổi trạng thái nhanh) -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Cập nhật trạng thái</h6>
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/status'}" method="post" class="d-flex gap-2">
+                        <select name="status" class="form-select">
+                            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${feedback.status == s}">Chờ xử lý</option>
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary">Cập nhật</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Form trả lời -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+                <div class="card-body p-4">
+
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-reply-fill text-success me-1"></i>
+                        Trả lời phản hồi
+                    </h6>
+
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/reply'}"
+                          th:object="${replyRequest}"
+                          method="post">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">
+                                Nội dung trả lời <span class="text-danger">*</span>
+                            </label>
+                            <textarea th:field="*{content}" class="form-control" rows="7"
+                                      placeholder="Nhập nội dung phản hồi gửi cho người dùng..."
+                                      required></textarea>
+                            <div th:if="${#fields.hasErrors('content')}"
+                                 th:errors="*{content}" class="text-danger small mt-1"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">
+                                Cập nhật trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <select th:field="*{status}" class="form-select" required>
+                                <option th:each="s : ${statuses}"
+                                        th:value="${s}"
+                                        th:text="${s.label}">Chờ xử lý</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 py-2 fw-semibold">
+                            <i class="bi bi-send-fill me-1"></i> Gửi trả lời
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Đổi trạng thái nhanh -->
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/status'}"
+                          method="post">
+                        <label class="form-label small fw-semibold">Đổi trạng thái nhanh</label>
+                        <div class="input-group input-group-sm">
+                            <select name="status" class="form-select">
+                                <option th:each="s : ${statuses}"
+                                        th:value="${s}"
+                                        th:text="${s.label}"
+                                        th:selected="${feedback.status == s}">Chờ xử lý</option>
+                            </select>
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-check2"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <!-- Xóa -->
+                    <form th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/delete'}"
+                          method="post"
+                          onsubmit="return confirm('Bạn chắc chắn muốn xóa phản hồi này? Hành động không thể hoàn tác!');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="bi bi-trash me-1"></i> Xóa phản hồi
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+</body>
+</html>

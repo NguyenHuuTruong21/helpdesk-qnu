@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{layout/fragments :: head('Báo cáo sự cố')}"></head>
+<body class="public-page d-flex flex-column min-vh-100">
+<header th:replace="~{layout/fragments :: publicHeader}"></header>
+
+<main class="container py-5 flex-grow-1">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <div class="text-center mb-4">
+                        <div class="success-icon-circle mb-3" style="background:#f8d7da; color:#dc3545;">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        <h3 class="fw-bold">Báo cáo Sự cố Kỹ thuật</h3>
+                        <p class="text-muted small mb-0">Dành cho các sự cố phức tạp cần chuyên viên IT xử lý.</p>
+                    </div>
+
+                    <div th:if="${errorMessage}" class="alert alert-danger small">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <span th:text="${errorMessage}"></span>
+                    </div>
+
+                    <form th:action="@{/dich-vu/bao-cao-su-co}" th:object="${request}" method="post" enctype="multipart/form-data">
+                        
+                        <!-- Thông tin liên hệ -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" th:field="*{fullName}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label small fw-semibold">Email cá nhân <span class="text-danger">*</span></label>
+                                <input type="email" th:field="*{email}" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Số điện thoại</label>
+                            <input type="text" th:field="*{phone}" class="form-control" placeholder="Để lại SĐT để IT liên hệ nhanh">
+                        </div>
+
+                        <!-- Nội dung sự cố -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Loại sự cố <span class="text-danger">*</span></label>
+                            <select th:field="*{category}" class="form-select" required>
+                                <option value="">-- Chọn loại sự cố --</option>
+                                <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"></option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Tiêu đề <span class="text-danger">*</span></label>
+                            <input type="text" th:field="*{title}" class="form-control" placeholder="VD: Mất điện thoại nhận mã OTP" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Mô tả chi tiết <span class="text-danger">*</span></label>
+                            <textarea th:field="*{content}" class="form-control" rows="5" placeholder="Mô tả rõ sự cố bạn gặp phải..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold"><i class="bi bi-paperclip"></i> Ảnh chụp màn hình (Tùy chọn)</label>
+                            <input type="file" th:field="*{attachment}" class="form-control" accept="image/*">
+                        </div>
+
+                        <button type="submit" class="btn btn-danger w-100 py-2 fw-semibold">
+                            <i class="bi bi-send me-1"></i> Gửi phiếu báo cáo
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <a th:href="@{/}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{layout/fragments :: publicFooter}"></footer>
+</body>
+</html>

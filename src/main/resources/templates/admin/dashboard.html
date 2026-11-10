@@ -1,0 +1,166 @@
+<!-- Trang quản trị viên -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{layout/fragments :: head('Dashboard')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<div th:replace="~{layout/fragments :: navbar}"></div>
+<div th:replace="~{layout/fragments :: alerts}"></div>
+
+<main class="container py-4 flex-grow-1">
+
+    <div class="page-header mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-speedometer2 text-primary me-1"></i> Dashboard
+            </h3>
+            <p class="text-muted mb-0">
+                Tổng quan tình hình tiếp nhận và xử lý phản hồi
+            </p>
+        </div>
+    </div>
+
+    <!-- Thống kê phản hồi -->
+    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="letter-spacing: 0.5px;">
+        <i class="bi bi-bar-chart"></i> Thống kê phản hồi
+    </h6>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon"><i class="bi bi-inbox"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${total}">0</div>
+                    <div class="stat-label">Tổng phản hồi</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${pending}">0</div>
+                    <div class="stat-label">Chờ xử lý</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${processing}">0</div>
+                    <div class="stat-label">Đang xử lý</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${resolved}">0</div>
+                    <div class="stat-label">Đã trả lời</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê người dùng -->
+    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="letter-spacing: 0.5px;">
+        <i class="bi bi-people"></i> Thống kê người dùng
+    </h6>
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Người dùng (User)</div>
+                        <h2 class="fw-bold mb-0" th:text="${userCount}">0</h2>
+                    </div>
+                    <div class="stat-icon-large bg-primary-subtle text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small mb-1">Quản trị viên (Admin)</div>
+                        <h2 class="fw-bold mb-0" th:text="${adminCount}">0</h2>
+                    </div>
+                    <div class="stat-icon-large bg-danger-subtle text-danger">
+                        <i class="bi bi-shield-fill-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phản hồi chờ xử lý -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+            <h6 class="mb-0 fw-bold">
+                <i class="bi bi-clock-history text-warning me-1"></i>
+                Phản hồi mới nhất đang chờ xử lý
+            </h6>
+            <a th:href="@{/admin/feedbacks}" class="btn btn-sm btn-light border">
+                Xem tất cả <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <!-- Empty state -->
+            <div th:if="${#lists.isEmpty(recentPending)}" class="text-center py-5">
+                <div class="empty-icon-sm mx-auto">
+                    <i class="bi bi-check2-circle text-success"></i>
+                </div>
+                <h6 class="fw-bold mt-3 mb-1">Tuyệt vời!</h6>
+                <p class="text-muted small mb-0">Không có phản hồi nào đang chờ xử lý.</p>
+            </div>
+
+            <!-- Bảng -->
+            <div th:unless="${#lists.isEmpty(recentPending)}" class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70px;">Mã</th>
+                            <th>Tiêu đề</th>
+                            <th style="width: 170px;">Người gửi</th>
+                            <th style="width: 150px;">Danh mục</th>
+                            <th style="width: 140px;">Ngày gửi</th>
+                            <th style="width: 70px;" class="text-center"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="fb : ${recentPending}">
+                            <td>
+                                <span class="badge bg-primary-subtle text-primary fw-bold"
+                                      th:text="'#' + ${fb.id}">#1</span>
+                            </td>
+                            <td class="fw-semibold" th:text="${fb.title}">Tiêu đề</td>
+                            <td th:text="${fb.displayName}">Nguyễn Văn A</td>
+                            <td>
+                                <span class="badge bg-light text-dark border"
+                                      th:text="${fb.category?.label}">Học vụ</span>
+                            </td>
+                            <td class="small text-muted"
+                                th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2025</td>
+                            <td class="text-center">
+                                <a th:href="@{'/admin/feedbacks/' + ${fb.id}}"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-reply"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+</body>
+</html>

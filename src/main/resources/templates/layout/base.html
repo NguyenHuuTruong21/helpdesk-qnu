@@ -1,0 +1,28 @@
+<!-- Layout tổng -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="vi">
+<head th:replace="~{layout/fragments :: head('HelpDesk QNU')}"></head>
+<body>
+
+<!-- Navbar -->
+<div th:replace="~{layout/fragments :: navbar}"></div>
+
+<!-- Flash messages -->
+<div th:replace="~{layout/fragments :: alerts}"></div>
+
+<!-- Nội dung chính -->
+<main class="container py-4">
+    <!-- Mỗi trang con sẽ override fragment "content" -->
+</main>
+
+<!-- Footer -->
+<div th:replace="~{layout/fragments :: footer}"></div>
+
+<!-- Scripts -->
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+
+</body>
+</html>

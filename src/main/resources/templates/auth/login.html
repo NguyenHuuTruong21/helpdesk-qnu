@@ -1,0 +1,122 @@
+<!-- Trang đăng nhập -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head th:replace="~{layout/fragments :: head('Đăng nhập')}"></head>
+<body class="auth-page">
+
+<div class="auth-container">
+    <!-- Cột trái: Branding -->
+    <div class="auth-branding">
+        <div class="branding-content">
+            <div class="branding-logo">
+                <i class="bi bi-headset"></i>
+            </div>
+            <h1>HelpDesk QNU</h1>
+            <p class="tagline"></p>
+
+            <div class="branding-features">
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Gửi phản hồi mọi lúc, mọi nơi</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Theo dõi tiến độ xử lý trực tuyến</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span>Nhận phản hồi nhanh chóng từ cán bộ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cột phải: Form đăng nhập -->
+    <div class="auth-form-wrapper">
+        <div class="auth-form-box">
+
+            <!-- Logo mobile -->
+            <div class="text-center d-lg-none mb-4">
+                <i class="bi bi-headset text-primary" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold text-primary mt-2 mb-0">HelpDesk QNU</h3>
+            </div>
+
+            <div class="mb-4">
+                <h2 class="fw-bold mb-1">Đăng nhập</h2>
+                <p class="text-muted mb-0">Chào mừng bạn quay trở lại 👋</p>
+            </div>
+
+            <!-- Flash message -->
+            <div th:if="${errorMessage}" class="alert alert-danger py-2 small d-flex align-items-center">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${errorMessage}">Lỗi</span>
+            </div>
+            <div th:if="${successMessage}" class="alert alert-success py-2 small d-flex align-items-center">
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${successMessage}">Thành công</span>
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/login}" method="post">
+
+                <div class="form-floating mb-3">
+                    <input type="text" name="username" id="username"
+                           class="form-control" placeholder="Tên đăng nhập hoặc email"
+                           required autofocus autocomplete="username">
+                    <label for="username">
+                        <i class="bi bi-person me-1"></i> Tên đăng nhập hoặc email
+                    </label>
+                </div>
+
+                <div class="form-floating mb-3 position-relative">
+                    <input type="password" name="password" id="password"
+                           class="form-control" placeholder="Mật khẩu"
+                           required autocomplete="current-password">
+                    <label for="password">
+                        <i class="bi bi-lock me-1"></i> Mật khẩu
+                    </label>
+                    <button type="button" class="btn-toggle-password"
+                            onclick="togglePassword('password', this)">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label small" for="rememberMe">
+                            Ghi nhớ đăng nhập
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
+                    <i class="bi bi-box-arrow-in-right me-2"></i> Đăng nhập
+                </button>
+            </form>
+
+            <div class="text-center mt-4">
+                <span class="text-muted small">Chưa có tài khoản?</span>
+                <a th:href="@{/register}" class="fw-semibold text-decoration-none ms-1">
+                    Đăng ký ngay
+                </a>
+            </div>
+
+            <!-- ⚠️ KHÔNG hiển thị tài khoản demo ở đây nữa -->
+            <!-- Thông tin này chỉ để trong README.md cho giảng viên -->
+
+            <div class="text-center mt-5">
+                <small class="text-muted">
+                    <i class="bi bi-shield-lock"></i>
+                    Bảo mật bởi <strong>ICT - Trường Đại học Quy Nhơn</strong>
+                </small>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+</body>
+</html>

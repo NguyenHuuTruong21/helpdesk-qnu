@@ -1,0 +1,167 @@
+<!-- Trang người dùng đã đăng nhập -->
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="vi">
+<head th:replace="~{layout/fragments :: head('Trang chủ')}"></head>
+<body class="d-flex flex-column min-vh-100">
+
+<div th:replace="~{layout/fragments :: navbar}"></div>
+<div th:replace="~{layout/fragments :: alerts}"></div>
+
+<main class="container py-4 flex-grow-1">
+
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-house-door text-primary me-2"></i>
+                Xin chào, <span th:text="${user.fullName}">Người dùng</span> 👋
+            </h3>
+            <p class="text-muted mb-0">
+                Đây là tổng quan tình trạng các phản hồi của bạn
+            </p>
+        </div>
+        <a th:href="@{/user/feedbacks/new}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Gửi phản hồi mới
+        </a>
+    </div>
+
+    <!-- Thống kê phản hồi -->
+    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="letter-spacing: 0.5px;">
+        <i class="bi bi-bar-chart"></i> Thống kê phản hồi của tôi
+    </h6>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-primary">
+                <div class="stat-icon"><i class="bi bi-inbox"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${total}">0</div>
+                    <div class="stat-label">Tổng phản hồi</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-warning">
+                <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${pending}">0</div>
+                    <div class="stat-label">Chờ xử lý</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-info">
+                <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${processing}">0</div>
+                    <div class="stat-label">Đang xử lý</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="stat-card stat-card-success">
+                <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-value" th:text="${resolved}">0</div>
+                    <div class="stat-label">Đã giải quyết</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hành động nhanh -->
+    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="letter-spacing: 0.5px;">
+        <i class="bi bi-lightning"></i> Hành động nhanh
+    </h6>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <a th:href="@{/user/feedbacks/new}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center gap-3 p-4">
+                    <div class="rounded-3 p-3" style="background: #e7f1ff;">
+                        <i class="bi bi-plus-circle-fill fs-4 text-primary"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Gửi phản hồi mới</div>
+                        <small class="text-muted">Tạo yêu cầu hỗ trợ</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/user/feedbacks}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center gap-3 p-4">
+                    <div class="rounded-3 p-3" style="background: #d1f4e0;">
+                        <i class="bi bi-list-ul fs-4 text-success"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Danh sách phản hồi</div>
+                        <small class="text-muted">Xem tất cả phản hồi</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/knowledge-base}" class="card border-0 shadow-sm text-decoration-none h-100">
+                <div class="card-body d-flex align-items-center gap-3 p-4">
+                    <div class="rounded-3 p-3" style="background: #fff8e6;">
+                        <i class="bi bi-book-fill fs-4 text-warning"></i>
+                    </div>
+                    <div>
+                        <div class="fw-semibold">Knowledge Base</div>
+                        <small class="text-muted">Tài liệu hướng dẫn</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Thông tin tài khoản -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+            <h6 class="fw-bold mb-0">
+                <i class="bi bi-person-circle text-primary me-2"></i>Thông tin tài khoản
+            </h6>
+        </div>
+        <div class="card-body px-4 pb-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Tên đăng nhập</label>
+                    <div class="fw-semibold" th:text="${user.username}">—</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Họ và tên</label>
+                    <div class="fw-semibold" th:text="${user.fullName}">—</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Email</label>
+                    <div class="fw-semibold" th:text="${user.email != null ? user.email : '(chưa cập nhật)'}">—</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Số điện thoại</label>
+                    <div class="fw-semibold" th:text="${user.phone != null ? user.phone : '(chưa cập nhật)'}">—</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Vai trò</label>
+                    <div>
+                        <span class="badge bg-info-subtle text-info">
+                            <i class="bi bi-person me-1"></i>Sinh viên / Người dùng
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted mb-1">Ngày tạo tài khoản</label>
+                    <div class="fw-semibold"
+                         th:text="${#temporals.format(user.createdAt, 'dd/MM/yyyy HH:mm')}">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{layout/fragments :: footer}"></div>
+<th:block th:replace="~{layout/fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết yêu cầu | Service Desk QNU</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/public.css}" rel="stylesheet">
+</head>
+<body class="public-page">
+
+<header class="public-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center py-3">
+            <a href="/" class="public-logo text-decoration-none">
+                <i class="bi bi-headset"></i>
+                <span>Service Desk - Trường Đại học Quy Nhơn</span>
+            </a>
+            <a th:href="@{/view-ticket}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-search me-1"></i> Tra cứu khác
+            </a>
+        </div>
+    </div>
+</header>
+
+<main class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+
+            <!-- Ticket info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                        <div>
+                            <div class="small text-muted mb-1">Mã tra cứu</div>
+                            <h6 class="fw-bold text-primary mb-0" th:text="${feedback.trackingCode}">
+                                QNU-20250115-AB12CD
+                            </h6>
+                        </div>
+                        <span class="badge fs-6"
+                              th:classappend="'bg-' + ${feedback.status.badgeClass}"
+                              th:text="${feedback.status.label}">Chờ xử lý</span>
+                    </div>
+
+                    <h4 class="fw-bold mb-3" th:text="${feedback.title}">Tiêu đề</h4>
+
+                    <div class="row g-3 small mb-4">
+                        <div class="col-md-6">
+                            <i class="bi bi-person text-primary"></i>
+                            <strong>Người gửi:</strong>
+                            <span th:text="${feedback.displayName}">Khách</span>
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-envelope text-primary"></i>
+                            <strong>Email:</strong>
+                            <span th:text="${feedback.displayEmail}">email</span>
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-tag text-primary"></i>
+                            <strong>Danh mục:</strong>
+                            <span class="badge bg-secondary-subtle text-dark"
+                                  th:text="${feedback.category?.label}">Danh mục</span>
+                        </div>
+                        <div class="col-md-6">
+                            <i class="bi bi-calendar text-primary"></i>
+                            <strong>Ngày gửi:</strong>
+                            <span th:text="${#temporals.format(feedback.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                01/01/2025
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="content-box mb-3">
+                        <p class="mb-0" style="white-space: pre-wrap;"
+                           th:text="${feedback.content}">Nội dung</p>
+                    </div>
+
+                    <div th:if="${feedback.attachment != null}">
+                        <a th:href="@{'/files/download/' + ${feedback.id}}"
+                           class="attachment-link">
+                            <i class="bi bi-file-earmark-arrow-down"></i>
+                            <span th:text="${feedback.attachmentName != null} ? ${feedback.attachmentName} : 'Tệp đính kèm'">
+                                Tệp đính kèm
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replies -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-chat-dots text-success me-1"></i>
+                        Phản hồi từ bộ phận hỗ trợ
+                        <span class="badge bg-primary ms-1"
+                              th:text="${#lists.size(replies)}">0</span>
+                    </h6>
+
+                    <div th:if="${#lists.isEmpty(replies)}" class="text-center py-4">
+                        <i class="bi bi-hourglass-split text-warning" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3 mb-1 fw-semibold">Đang chờ xử lý</p>
+                        <small class="text-muted">
+                            Yêu cầu đã được tiếp nhận. Bộ phận hỗ trợ sẽ phản hồi trong 1-2 ngày làm việc.
+                        </small>
+                    </div>
+
+                    <div th:unless="${#lists.isEmpty(replies)}">
+                        <div th:each="reply : ${replies}" class="reply-item">
+                            <div class="reply-avatar">
+                                <i class="bi bi-person-badge-fill"></i>
+                            </div>
+                            <div class="reply-content">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong th:text="${reply.admin.fullName}">Admin</strong>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(reply.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                        01/01/2025
+                                    </small>
+                                </div>
+                                <p class="mb-0 text-secondary" style="white-space: pre-wrap;"
+                                   th:text="${reply.content}">Nội dung trả lời</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a th:href="@{/view-ticket}" class="btn btn-light border">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại tra cứu
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
