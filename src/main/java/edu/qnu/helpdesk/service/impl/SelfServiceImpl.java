@@ -93,7 +93,11 @@ public class SelfServiceImpl implements SelfService {
         // 1. Tìm user theo MSSV
         User user = userRepository.findByUsername(mssv).orElseThrow(() -> new BadRequestException("Không tìm thấy sinh viên với MSSV này"));
         // 2. Đối soát CCCD
-        if (user.getCitizenId() == null || !user.getCitizenId().equals(citizenId)) {
+        if (user.getCitizenId() == null || user.getCitizenId().isBlank()) {
+            throw new BadRequestException(
+                    "Hồ sơ chưa được cập nhật CCCD/CMND. Vui lòng liên hệ Phòng CTSV để bổ sung thông tin.");
+        }
+        if (!user.getCitizenId().equals(citizenId)) {
             throw new BadRequestException("Số CCCD/CMND không khớp với hồ sơ. Vui lòng kiểm tra lại.");
         }
         // 3. Kiểm tra có Email cá nhân chưa
@@ -181,7 +185,11 @@ public class SelfServiceImpl implements SelfService {
                         "Không tìm thấy sinh viên với MSSV này."));
 
         // 2. Đối soát CCCD
-        if (user.getCitizenId() == null || !user.getCitizenId().equals(request.getCitizenId())) {
+        if (user.getCitizenId() == null || user.getCitizenId().isBlank()) {
+            throw new BadRequestException(
+                    "Hồ sơ chưa được cập nhật CCCD/CMND. Vui lòng liên hệ Phòng CTSV để bổ sung thông tin.");
+        }
+        if (!user.getCitizenId().equals(request.getCitizenId())) {
             throw new BadRequestException(
                     "Số CCCD/CMND không khớp với hồ sơ sinh viên.");
         }

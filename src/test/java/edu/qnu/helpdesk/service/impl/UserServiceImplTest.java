@@ -43,6 +43,7 @@ class UserServiceImplTest {
                 .password("password")
                 .confirmPassword("password")
                 .fullName("New Student")
+                .citizenId("012345678901")
                 .email("  STUDENT@example.com ")
                 .build();
         Feedback guestFeedback = Feedback.builder()
@@ -61,6 +62,7 @@ class UserServiceImplTest {
         User registeredUser = userService.register(request);
 
         assertEquals("student@example.com", registeredUser.getEmail());
+        assertEquals("012345678901", registeredUser.getCitizenId());
         assertSame(registeredUser, guestFeedback.getUser());
         assertFalse(guestFeedback.getIsGuest());
         verify(feedbackRepository).saveAll(List.of(guestFeedback));

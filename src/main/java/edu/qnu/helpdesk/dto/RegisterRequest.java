@@ -25,6 +25,10 @@ public class RegisterRequest {
     @Size(max = 100, message = "Họ tên tối đa 100 ký tự")
     private String fullName;
 
+    @NotBlank(message = "Vui lòng nhập số CCCD/CMND")
+    @Pattern(regexp = "^[0-9]{9,12}$", message = "CCCD/CMND phải từ 9 đến 12 chữ số")
+    private String citizenId;
+
     @Email(message = "Email không hợp lệ")
     @Size(max = 100)
     private String email;

@@ -56,8 +56,9 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
                         <input type="text" th:field="*{username}" class="form-control"
-                               placeholder="VD: sv001" autocomplete="username">
+                               placeholder="Nhập MSSV nếu dùng dịch vụ sinh viên" autocomplete="username">
                     </div>
+                    <div class="form-text small">Dịch vụ sinh viên tìm tài khoản bằng MSSV 10 chữ số.</div>
                     <div th:if="${#fields.hasErrors('username')}"
                          th:errors="*{username}" class="text-danger small mt-1"></div>
                 </div>
@@ -74,6 +75,22 @@
                     </div>
                     <div th:if="${#fields.hasErrors('fullName')}"
                          th:errors="*{fullName}" class="text-danger small mt-1"></div>
+                </div>
+
+                <!-- CCCD/CMND -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">
+                        Số CCCD/CMND <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
+                        <input type="text" th:field="*{citizenId}" class="form-control"
+                               placeholder="Nhập 9 đến 12 chữ số" maxlength="12"
+                               inputmode="numeric" autocomplete="off">
+                    </div>
+                    <div class="form-text small">Dùng để xác thực khi sử dụng các dịch vụ sinh viên.</div>
+                    <div th:if="${#fields.hasErrors('citizenId')}"
+                         th:errors="*{citizenId}" class="text-danger small mt-1"></div>
                 </div>
 
                 <!-- Email + SĐT -->
