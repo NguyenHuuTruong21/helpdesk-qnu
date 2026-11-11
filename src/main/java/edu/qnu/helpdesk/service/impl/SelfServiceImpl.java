@@ -184,40 +184,58 @@ public class SelfServiceImpl implements SelfService {
                 .orElseThrow(() -> new BadRequestException(
                         "Không tìm thấy sinh viên với MSSV này."));
 
-        // 2. Đối soát CCCD
-        if (user.getCitizenId() == null || user.getCitizenId().isBlank()) {
-            throw new BadRequestException(
-                    "Hồ sơ chưa được cập nhật CCCD/CMND. Vui lòng liên hệ Phòng CTSV để bổ sung thông tin.");
-        }
-        if (!user.getCitizenId().equals(request.getCitizenId())) {
-            throw new BadRequestException(
-                    "Số CCCD/CMND không khớp với hồ sơ sinh viên.");
+        // 2. Đối soát CCCD hiện có; nếu hồ sơ chưa có, chỉ nhận yêu cầu bổ sung chờ admin duyệt.
+        String currentCitizenId = user.getCitizenId();
+        boolean hasCurrentCitizenId = currentCitizenId != null && !currentCitizenId.isBlank();
+        String submittedCitizenId = request.getCitizenId() == null ? null : request.getCitizenId().trim();
+        if (hasCurrentCitizenId && !currentCitizenId.equals(submittedCitizenId)) {
+            throw new BadRequestException("Số CCCD/CMND không khớp với hồ sơ sinh viên.");
         }
 
         // 3. Kiểm tra có thay đổi gì không
-        boolean phoneChanged = request.getNewPhone() != null
-                && !request.getNewPhone().equals(user.getPhone());
-        boolean emailChanged = request.getNewPersonalEmail() != null
-                && !request.getNewPersonalEmail().equals(user.getPersonalEmail());
+        String newPhone = request.getNewPhone() == null ? null : request.getNewPhone().trim();
+        String newPersonalEmail = request.getNewPersonalEmail() == null
+                ? null
+                : request.getNewPersonalEmail().trim();
+        boolean phoneChanged = newPhone != null && !newPhone.isBlank() && !newPhone.equals(user.getPhone());
+        boolean emailChanged = newPersonalEmail != null && !newPersonalEmail.isBlank()
+                && !newPersonalEmail.equals(user.getPersonalEmail());
+        String requestedCitizenId = request.getNewCitizenId() == null
+                ? null
+                : request.getNewCitizenId().trim();
+        boolean citizenIdChanged = requestedCitizenId != null
+                && !requestedCitizenId.isBlank()
+                && !requestedCitizenId.equals(user.getCitizenId());
 
-        if (!phoneChanged && !emailChanged) {
+        if (!hasCurrentCitizenId && !citizenIdChanged) {
+            throw new BadRequestException(
+                    "Hồ sơ chưa có CCCD/CMND. Vui lòng nhập CCCD mới để gửi yêu cầu bổ sung.");
+        }
+        if (!hasCurrentCitizenId && (phoneChanged || emailChanged)) {
+            throw new BadRequestException(
+                    "Vui lòng gửi yêu cầu bổ sung CCCD trước; chỉ có thể cập nhật liên hệ sau khi admin duyệt.");
+        }
+
+        if (!phoneChanged && !emailChanged && !citizenIdChanged) {
             throw new BadRequestException(
                     "Không có thông tin nào thay đổi. Vui lòng nhập thông tin mới.");
         }
 
-        // 4. Cập nhật
-        if (phoneChanged) user.setPhone(request.getNewPhone());
-        if (emailChanged) user.setPersonalEmail(request.getNewPersonalEmail());
-        userRepository.save(user);
+        // 4. Cập nhật liên hệ ngay; CCCD chỉ đổi sau khi admin duyệt yêu cầu.
+        if (phoneChanged) user.setPhone(newPhone);
+        if (emailChanged) user.setPersonalEmail(newPersonalEmail);
+        if (phoneChanged || emailChanged) userRepository.save(user);
 
         // 5. Tạo ticket thông báo cho phòng CTSV
         StringBuilder changes = new StringBuilder();
-        if (phoneChanged) changes.append("- SĐT mới: ").append(request.getNewPhone()).append("\n");
-        if (emailChanged) changes.append("- Email cá nhân mới: ").append(request.getNewPersonalEmail()).append("\n");
+        if (phoneChanged) changes.append("- SĐT mới: ").append(newPhone).append("\n");
+        if (emailChanged) changes.append("- Email cá nhân mới: ").append(newPersonalEmail).append("\n");
+        if (citizenIdChanged) changes.append("- Có yêu cầu cập nhật CCCD/CMND mới; chờ admin duyệt.\n");
 
         edu.qnu.helpdesk.entity.Feedback ticket = edu.qnu.helpdesk.entity.Feedback.builder()
                 .user(user)
                 .isGuest(false)
+                .requestedCitizenId(citizenIdChanged ? requestedCitizenId : null)
                 .title("[Cập nhật thông tin] MSSV " + request.getStudentId())
                 .category(edu.qnu.helpdesk.enums.FeedbackCategory.KHAC)
                 .content(String.format("""

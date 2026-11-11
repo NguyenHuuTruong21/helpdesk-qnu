@@ -14,6 +14,7 @@ import edu.qnu.helpdesk.enums.FeedbackStatus;
 import edu.qnu.helpdesk.exception.BadRequestException;
 import edu.qnu.helpdesk.exception.ResourceNotFoundException;
 import edu.qnu.helpdesk.repository.FeedbackRepository;
+import edu.qnu.helpdesk.repository.UserRepository;
 import edu.qnu.helpdesk.service.FeedbackService;
 import edu.qnu.helpdesk.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FeedbackServiceImpl implements FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final FileStorageService fileStorageService;
+    private final UserRepository userRepository;
 
     // User
     @Override
@@ -103,6 +105,28 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setStatus(status);
         feedbackRepository.save(feedback);
         log.info("Feedback [{}] status updated to {}", id, status);
+    }
+
+    @Override
+    @Transactional
+    public void approveCitizenIdUpdate(Long id) {
+        Feedback feedback = getFeedbackById(id);
+        if (feedback.getRequestedCitizenId() == null || feedback.getRequestedCitizenId().isBlank()) {
+            throw new BadRequestException("Yêu cầu này không có thông tin CCCD cần duyệt.");
+        }
+        if (feedback.isCitizenIdUpdateApproved()) {
+            throw new BadRequestException("Yêu cầu cập nhật CCCD đã được duyệt trước đó.");
+        }
+        User user = feedback.getUser();
+        if (user == null) {
+            throw new BadRequestException("Không thể cập nhật CCCD vì yêu cầu chưa gắn với tài khoản.");
+        }
+
+        user.setCitizenId(feedback.getRequestedCitizenId());
+        userRepository.save(user);
+        feedback.setCitizenIdUpdateApproved(true);
+        feedbackRepository.save(feedback);
+        log.info("Approved CCCD update for feedback [{}] and user [{}]", id, user.getUsername());
     }
 
     @Override

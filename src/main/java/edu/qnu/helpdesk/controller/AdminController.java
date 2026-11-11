@@ -168,6 +168,14 @@ public class AdminController {
         return "redirect:/admin/feedbacks/" + id;
     }
 
+    @PostMapping("/feedbacks/{id}/approve-citizen-id")
+    public String approveCitizenIdUpdate(@PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        feedbackService.approveCitizenIdUpdate(id);
+        redirectAttributes.addFlashAttribute("successMessage", "Đã duyệt và đồng bộ CCCD vào hồ sơ tài khoản.");
+        return "redirect:/admin/feedbacks/" + id;
+    }
+
     // Xoá phản hồi
     @PostMapping("/feedbacks/{id}/delete")
     public String deleteFeedback(@PathVariable Long id,

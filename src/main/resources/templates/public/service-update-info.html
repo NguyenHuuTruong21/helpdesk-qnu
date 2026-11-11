@@ -47,8 +47,8 @@
                         <div class="success-icon-circle mb-3" style="background:#e7f1ff; color:#0d6efd;">
                             <i class="bi bi-pencil-square"></i>
                         </div>
-                        <h3 class="fw-bold">Cập nhật Thông tin Liên lạc</h3>
-                        <p class="text-muted small mb-0">Bổ sung hoặc thay đổi Số điện thoại / Email cá nhân.</p>
+                        <h3 class="fw-bold">Cập nhật Thông tin</h3>
+                        <p class="text-muted small mb-0">Bổ sung thông tin liên lạc hoặc gửi yêu cầu cập nhật CCCD/CMND.</p>
                     </div>
 
                     <div th:if="${successMessage}" class="alert alert-success small">
@@ -68,13 +68,22 @@
                                 <div th:if="${#fields.hasErrors('studentId')}" th:errors="*{studentId}" class="text-danger small mt-1"></div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-semibold">CCCD/CMND <span class="text-danger">*</span></label>
-                                <input type="text" th:field="*{citizenId}" class="form-control" placeholder="Số CCCD/CMND" maxlength="12" required>
+                                <label class="form-label small fw-semibold">CCCD/CMND hiện tại</label>
+                                <input type="text" th:field="*{citizenId}" class="form-control" placeholder="Để trống nếu hồ sơ chưa có CCCD" maxlength="12">
                                 <div th:if="${#fields.hasErrors('citizenId')}" th:errors="*{citizenId}" class="text-danger small mt-1"></div>
+                                <div class="form-text">Nếu hồ sơ chưa có CCCD, nhập CCCD mới để gửi admin duyệt bổ sung.</div>
                             </div>
                         </div>
 
                         <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">2. Thông tin mới</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">CCCD/CMND mới</label>
+                            <input type="text" th:field="*{newCitizenId}" class="form-control"
+                                   placeholder="Để trống nếu không đổi" maxlength="12" inputmode="numeric">
+                            <div th:if="${#fields.hasErrors('newCitizenId')}" th:errors="*{newCitizenId}" class="text-danger small mt-1"></div>
+                            <div class="form-text">CCCD mới chỉ được đồng bộ vào hồ sơ sau khi admin duyệt yêu cầu.</div>
+                        </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6 mb-3">

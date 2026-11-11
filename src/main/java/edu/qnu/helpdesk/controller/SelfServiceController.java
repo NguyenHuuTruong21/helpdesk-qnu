@@ -140,7 +140,7 @@ public class SelfServiceController {
         try {
             selfService.updateContactInfo(request);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Cập nhật thông tin thành công! Yêu cầu đã được gửi đến Phòng CTSV.");
+                    "Thông tin liên lạc đã cập nhật. Nếu có yêu cầu đổi CCCD/CMND, admin sẽ duyệt trước khi đồng bộ vào hồ sơ.");
             return "redirect:/dich-vu/cap-nhat-thong-tin";
         } catch (BadRequestException e) {
             model.addAttribute("errorMessage", e.getMessage());

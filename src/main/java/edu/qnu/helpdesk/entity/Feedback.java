@@ -101,6 +101,13 @@ public class Feedback {
         @Column(name = "appointment_staff", length = 100)
         private String appointmentStaff;
 
+        @Column(name = "requested_citizen_id", length = 20)
+        private String requestedCitizenId;
+
+        @Column(name = "citizen_id_update_approved", nullable = false)
+        @Builder.Default
+        private boolean citizenIdUpdateApproved = false;
+
         // ============ HELPER ============
 
         @Transient

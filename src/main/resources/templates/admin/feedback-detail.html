@@ -65,6 +65,24 @@
                            th:text="${feedback.content}">Nội dung</p>
                     </div>
 
+                    <div th:if="${feedback.requestedCitizenId != null}" class="alert mt-3 mb-0"
+                         th:classappend="${feedback.citizenIdUpdateApproved} ? 'alert-success' : 'alert-warning'">
+                        <div>
+                            <strong>CCCD/CMND yêu cầu:</strong>
+                            <span th:text="${feedback.requestedCitizenId}"></span>
+                        </div>
+                        <div th:if="${feedback.citizenIdUpdateApproved}" class="small mt-1">
+                            CCCD đã được duyệt và đồng bộ vào hồ sơ tài khoản.
+                        </div>
+                        <form th:unless="${feedback.citizenIdUpdateApproved}"
+                              th:action="@{'/admin/feedbacks/' + ${feedback.id} + '/approve-citizen-id'}"
+                              method="post" class="mt-2">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-circle me-1"></i>Duyệt và đồng bộ CCCD
+                            </button>
+                        </form>
+                    </div>
+
                     <!-- File đính kèm -->
                     <div th:if="${feedback.attachment != null}" class="mt-3">
                         <a th:href="@{'/files/download/' + ${feedback.id}}"

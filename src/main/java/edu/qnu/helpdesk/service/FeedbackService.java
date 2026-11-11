@@ -29,6 +29,8 @@ public interface FeedbackService {
 
     void updateStatus(Long id, FeedbackStatus status);
 
+    void approveCitizenIdUpdate(Long id);
+
     void deleteFeedback(Long id);
     
     // Statistics
