@@ -13,6 +13,8 @@ import edu.qnu.helpdesk.repository.UserRepository.UserSummary;
 public interface UserService {
     User register(RegisterRequest request);
 
+    void claimGuestFeedbackForUser(String username);
+
     Optional<User> findByUsername(String username);
 
     User findById(Long id);

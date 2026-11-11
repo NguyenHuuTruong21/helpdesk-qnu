@@ -75,20 +75,35 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User saved = userRepository.save(user);
-        if (email != null) {
-            List<Feedback> previousGuestFeedback = feedbackRepository.findUnclaimedGuestFeedbackByEmail(email);
-            for (Feedback feedback : previousGuestFeedback) {
-                feedback.setUser(saved);
-                feedback.setIsGuest(false);
-            }
-            if (!previousGuestFeedback.isEmpty()) {
-                feedbackRepository.saveAll(previousGuestFeedback);
-                log.info("Linked {} guest feedback item(s) to newly registered user [{}]",
-                        previousGuestFeedback.size(), saved.getUsername());
-            }
-        }
+        claimGuestFeedback(saved);
         log.info("Registered new user: {}", saved.getUsername());
         return saved;
+    }
+
+    @Override
+    @Transactional
+    public void claimGuestFeedbackForUser(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy user: " + username));
+        claimGuestFeedback(user);
+    }
+
+    private void claimGuestFeedback(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            return;
+        }
+
+        String email = user.getEmail().trim().toLowerCase(Locale.ROOT);
+        List<Feedback> guestFeedback = feedbackRepository.findUnclaimedGuestFeedbackByEmail(email);
+        for (Feedback feedback : guestFeedback) {
+            feedback.setUser(user);
+            feedback.setIsGuest(false);
+        }
+        if (!guestFeedback.isEmpty()) {
+            feedbackRepository.saveAll(guestFeedback);
+            log.info("Linked {} guest feedback item(s) to user [{}]",
+                    guestFeedback.size(), user.getUsername());
+        }
     }
 
     @Override
