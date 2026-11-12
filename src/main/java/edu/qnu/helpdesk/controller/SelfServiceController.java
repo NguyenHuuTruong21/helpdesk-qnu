@@ -81,7 +81,8 @@ public class SelfServiceController {
         try {
             String sentEmail = selfService.resetPassword(request.getStudentId(), request.getCitizenId());
             redirectAttributes.addFlashAttribute("successMessage",
-                "Mật khẩu mới đã được gửi về Email cá nhân (" + sentEmail + "). Vui lòng kiểm tra hộp thư!");
+                "Mật khẩu Email trường đã được gửi về Email cá nhân (" + sentEmail
+                        + "). Mật khẩu đăng nhập HelpDesk được giữ nguyên.");
             return "redirect:/dich-vu/quen-mat-khau";
         } catch (BadRequestException e) {
             model.addAttribute("errorMessage", e.getMessage());
@@ -140,7 +141,7 @@ public class SelfServiceController {
         try {
             selfService.updateContactInfo(request);
             redirectAttributes.addFlashAttribute("successMessage",
-                    "Thông tin liên lạc đã cập nhật. Nếu có yêu cầu đổi CCCD/CMND, admin sẽ duyệt trước khi đồng bộ vào hồ sơ.");
+                    "Yêu cầu cập nhật đã được ghi nhận. Thông tin liên lạc được cập nhật nếu có; CCCD/CMND chỉ được bổ sung hoặc thay đổi sau khi admin duyệt.");
             return "redirect:/dich-vu/cap-nhat-thong-tin";
         } catch (BadRequestException e) {
             model.addAttribute("errorMessage", e.getMessage());

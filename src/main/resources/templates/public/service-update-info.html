@@ -48,7 +48,7 @@
                             <i class="bi bi-pencil-square"></i>
                         </div>
                         <h3 class="fw-bold">Cập nhật Thông tin</h3>
-                        <p class="text-muted small mb-0">Bổ sung thông tin liên lạc hoặc gửi yêu cầu cập nhật CCCD/CMND.</p>
+                        <p class="text-muted small mb-0">Tra cứu sinh viên bằng MSSV; CCCD/CMND chỉ là thông tin bổ sung trong hồ sơ.</p>
                     </div>
 
                     <div th:if="${successMessage}" class="alert alert-success small">
@@ -59,30 +59,32 @@
                     </div>
 
                     <form th:action="@{/dich-vu/cap-nhat-thong-tin}" th:object="${request}" method="post">
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">1. Xác thực danh tính</h6>
+                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">1. Tìm hồ sơ sinh viên</h6>
 
-                        <div class="row mb-4">
-                            <div class="col-md-6 mb-3">
+                        <div class="mb-3">
+                            <div class="col-md-12 mb-3">
                                 <label class="form-label small fw-semibold">MSSV <span class="text-danger">*</span></label>
                                 <input type="text" th:field="*{studentId}" class="form-control" placeholder="MSSV 10 số" maxlength="10" required>
                                 <div th:if="${#fields.hasErrors('studentId')}" th:errors="*{studentId}" class="text-danger small mt-1"></div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label small fw-semibold">CCCD/CMND hiện tại</label>
-                                <input type="text" th:field="*{citizenId}" class="form-control" placeholder="Để trống nếu hồ sơ chưa có CCCD" maxlength="12">
-                                <div th:if="${#fields.hasErrors('citizenId')}" th:errors="*{citizenId}" class="text-danger small mt-1"></div>
-                                <div class="form-text">Nếu hồ sơ chưa có CCCD, nhập CCCD mới để gửi admin duyệt bổ sung.</div>
                             </div>
                         </div>
 
                         <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">2. Thông tin mới</h6>
 
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">CCCD/CMND mới</label>
+                            <label class="form-label small fw-semibold">CCCD/CMND hiện tại <span class="text-muted">(chỉ cần khi đổi SĐT/email)</span></label>
+                            <input type="text" th:field="*{citizenId}" class="form-control"
+                                   placeholder="Không cần nhập nếu chỉ yêu cầu bổ sung/cập nhật CCCD" maxlength="12" inputmode="numeric">
+                            <div th:if="${#fields.hasErrors('citizenId')}" th:errors="*{citizenId}" class="text-danger small mt-1"></div>
+                            <div class="form-text">Tra cứu chỉ hiển thị CCCD đã có hay chưa; không hiển thị số CCCD.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">CCCD/CMND bổ sung hoặc cập nhật</label>
                             <input type="text" th:field="*{newCitizenId}" class="form-control"
-                                   placeholder="Để trống nếu không đổi" maxlength="12" inputmode="numeric">
+                                   placeholder="Không cần nhập nếu không bổ sung/cập nhật" maxlength="12" inputmode="numeric">
                             <div th:if="${#fields.hasErrors('newCitizenId')}" th:errors="*{newCitizenId}" class="text-danger small mt-1"></div>
-                            <div class="form-text">CCCD mới chỉ được đồng bộ vào hồ sơ sau khi admin duyệt yêu cầu.</div>
+                            <div class="form-text">Không cần nhập CCCD hiện tại. Yêu cầu bổ sung/thay đổi chỉ được đồng bộ vào hồ sơ sau khi admin duyệt.</div>
                         </div>
 
                         <div class="row mb-3">

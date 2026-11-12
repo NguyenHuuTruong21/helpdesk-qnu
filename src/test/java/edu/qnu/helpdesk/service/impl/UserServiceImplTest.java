@@ -3,6 +3,7 @@ package edu.qnu.helpdesk.service.impl;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -68,6 +69,27 @@ class UserServiceImplTest {
         assertSame(registeredUser, guestFeedback.getUser());
         assertFalse(guestFeedback.getIsGuest());
         verify(feedbackRepository).saveAll(List.of(guestFeedback));
+    }
+
+    @Test
+    void registerAllowsMissingCitizenId() {
+        RegisterRequest request = RegisterRequest.builder()
+                .username("newstudent")
+                .password("password")
+                .confirmPassword("password")
+                .fullName("New Student")
+                .citizenId("")
+                .build();
+
+        when(userRepository.existsByUsername("newstudent")).thenReturn(false);
+        when(passwordEncoder.encode("password")).thenReturn("encoded-password");
+        when(userRepository.save(any(User.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        User registeredUser = userService.register(request);
+
+        assertNull(registeredUser.getCitizenId());
+        assertEquals("encoded-password", registeredUser.getPassword());
     }
 
     @Test

@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SelfServiceImpl implements SelfService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final edu.qnu.helpdesk.repository.FeedbackRepository feedbackRepository;
 
@@ -50,6 +48,9 @@ public class SelfServiceImpl implements SelfService {
         if (hasSchoolEmail) {
             result.put("schoolEmail", maskEmail(user.getEmail()));
         }
+
+        boolean hasCitizenId = user.getCitizenId() != null && !user.getCitizenId().isBlank();
+        result.put("hasCitizenId", hasCitizenId);
 
         // 2. Kiểm tra thông tin liên lạc (SĐT & Email cá nhân)
         boolean hasPhone = user.getPhone() != null && !user.getPhone().isBlank();
@@ -104,24 +105,15 @@ public class SelfServiceImpl implements SelfService {
         if(user.getPersonalEmail() == null || user.getPersonalEmail().isBlank()) {
             throw new BadRequestException("Tài khoản chưa cập nhật Email cá nhân. Vui lòng liên hệ Phòng CTSV.");
         }
-        // 4. Tạo mật khẩu ngẫu nhiên (Ví dụ: Qnu@123456)
+        // Mật khẩu này dành cho Email trường, không phải tài khoản đăng nhập HelpDesk.
         String newPassword = "Qnu@" + (int)(Math.random() * 900000 + 100000);
 
-        // 5. Cập nhật vào DB
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
-        // 6. Gửi email cá nhân
-        String emailBody = "Chào " + user.getFullName() + ",\n\n" +
-                "Mật khẩu mới cho tài khoản Email trường của bạn là: " + newPassword + "\n" +
-                "Vui lòng đăng nhập và đổi mật khẩu ngay sau khi nhận được email này.\n\n" +
-                "Trân trọng,\nTrung tâm Số & Học liệu - Đại học Quy Nhơn";
-        
+        // 5. Gửi mật khẩu Email trường về email cá nhân; giữ nguyên mật khẩu HelpDesk.
         emailService.sendNewPasswordEmail(
-        user.getPersonalEmail(), 
-        user.getFullName(), 
-        user.getUsername(), 
-        newPassword
-);
+                user.getPersonalEmail(),
+                user.getFullName(),
+                user.getUsername(),
+                newPassword);
 
         return user.getPersonalEmail();
     }
@@ -184,15 +176,7 @@ public class SelfServiceImpl implements SelfService {
                 .orElseThrow(() -> new BadRequestException(
                         "Không tìm thấy sinh viên với MSSV này."));
 
-        // 2. Đối soát CCCD hiện có; nếu hồ sơ chưa có, chỉ nhận yêu cầu bổ sung chờ admin duyệt.
-        String currentCitizenId = user.getCitizenId();
-        boolean hasCurrentCitizenId = currentCitizenId != null && !currentCitizenId.isBlank();
-        String submittedCitizenId = request.getCitizenId() == null ? null : request.getCitizenId().trim();
-        if (hasCurrentCitizenId && !currentCitizenId.equals(submittedCitizenId)) {
-            throw new BadRequestException("Số CCCD/CMND không khớp với hồ sơ sinh viên.");
-        }
-
-        // 3. Kiểm tra có thay đổi gì không
+        // 2. Kiểm tra có thay đổi gì không
         String newPhone = request.getNewPhone() == null ? null : request.getNewPhone().trim();
         String newPersonalEmail = request.getNewPersonalEmail() == null
                 ? null
@@ -200,6 +184,7 @@ public class SelfServiceImpl implements SelfService {
         boolean phoneChanged = newPhone != null && !newPhone.isBlank() && !newPhone.equals(user.getPhone());
         boolean emailChanged = newPersonalEmail != null && !newPersonalEmail.isBlank()
                 && !newPersonalEmail.equals(user.getPersonalEmail());
+        boolean contactInfoChanged = phoneChanged || emailChanged;
         String requestedCitizenId = request.getNewCitizenId() == null
                 ? null
                 : request.getNewCitizenId().trim();
@@ -207,13 +192,18 @@ public class SelfServiceImpl implements SelfService {
                 && !requestedCitizenId.isBlank()
                 && !requestedCitizenId.equals(user.getCitizenId());
 
-        if (!hasCurrentCitizenId && !citizenIdChanged) {
-            throw new BadRequestException(
-                    "Hồ sơ chưa có CCCD/CMND. Vui lòng nhập CCCD mới để gửi yêu cầu bổ sung.");
-        }
-        if (!hasCurrentCitizenId && (phoneChanged || emailChanged)) {
-            throw new BadRequestException(
-                    "Vui lòng gửi yêu cầu bổ sung CCCD trước; chỉ có thể cập nhật liên hệ sau khi admin duyệt.");
+        if (contactInfoChanged) {
+            String currentCitizenId = user.getCitizenId();
+            if (currentCitizenId == null || currentCitizenId.isBlank()) {
+                throw new BadRequestException(
+                        "Hồ sơ chưa có CCCD/CMND để xác minh. Vui lòng gửi yêu cầu bổ sung CCCD hoặc liên hệ Phòng CTSV.");
+            }
+            String submittedCitizenId = request.getCitizenId() == null
+                    ? null
+                    : request.getCitizenId().trim();
+            if (!currentCitizenId.equals(submittedCitizenId)) {
+                throw new BadRequestException("Số CCCD/CMND không khớp với hồ sơ sinh viên.");
+            }
         }
 
         if (!phoneChanged && !emailChanged && !citizenIdChanged) {
@@ -221,12 +211,12 @@ public class SelfServiceImpl implements SelfService {
                     "Không có thông tin nào thay đổi. Vui lòng nhập thông tin mới.");
         }
 
-        // 4. Cập nhật liên hệ ngay; CCCD chỉ đổi sau khi admin duyệt yêu cầu.
+        // 3. Cập nhật liên hệ ngay; CCCD chỉ đổi sau khi admin duyệt yêu cầu.
         if (phoneChanged) user.setPhone(newPhone);
         if (emailChanged) user.setPersonalEmail(newPersonalEmail);
         if (phoneChanged || emailChanged) userRepository.save(user);
 
-        // 5. Tạo ticket thông báo cho phòng CTSV
+        // 4. Tạo ticket thông báo cho phòng CTSV
         StringBuilder changes = new StringBuilder();
         if (phoneChanged) changes.append("- SĐT mới: ").append(newPhone).append("\n");
         if (emailChanged) changes.append("- Email cá nhân mới: ").append(newPersonalEmail).append("\n");

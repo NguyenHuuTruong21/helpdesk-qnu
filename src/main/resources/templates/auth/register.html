@@ -77,18 +77,18 @@
                          th:errors="*{fullName}" class="text-danger small mt-1"></div>
                 </div>
 
-                <!-- CCCD/CMND -->
+                <!-- CCCD/CMND tùy chọn -->
                 <div class="mb-3">
                     <label class="form-label small fw-semibold">
-                        Số CCCD/CMND <span class="text-danger">*</span>
+                        Số CCCD/CMND <span class="text-muted">(không bắt buộc)</span>
                     </label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="bi bi-card-text"></i></span>
                         <input type="text" th:field="*{citizenId}" class="form-control"
-                               placeholder="Nhập 9 đến 12 chữ số" maxlength="12"
+                               placeholder="Có thể để trống" maxlength="12"
                                inputmode="numeric" autocomplete="off">
                     </div>
-                    <div class="form-text small">Dùng để xác thực khi sử dụng các dịch vụ sinh viên.</div>
+                    <div class="form-text small">Có thể bổ sung hoặc cập nhật sau; không dùng CCCD làm mã đăng nhập.</div>
                     <div th:if="${#fields.hasErrors('citizenId')}"
                          th:errors="*{citizenId}" class="text-danger small mt-1"></div>
                 </div>
