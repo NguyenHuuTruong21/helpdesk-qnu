@@ -102,7 +102,6 @@
                             <input type="email" th:field="*{email}" class="form-control"
                                    placeholder="email@st.qnu.edu.vn">
                         </div>
-                            <div class="form-text small">Nếu đã gửi phản hồi khi chưa có tài khoản, hãy dùng cùng email để tự động liên kết phản hồi vào tài khoản mới.</div>
                             <div th:if="${#fields.hasErrors('email')}"
                                  th:errors="*{email}" class="text-danger small mt-1"></div>
                     </div>

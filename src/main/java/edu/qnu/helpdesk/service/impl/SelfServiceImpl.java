@@ -135,7 +135,6 @@ public class SelfServiceImpl implements SelfService {
         // 3. Tự động cập nhật thông tin liên lạc vào hồ sơ
         user.setPhone(request.getPhone());
         user.setPersonalEmail(request.getPersonalEmail());
-        user.setFullName(request.getFullName());
         userRepository.save(user);
 
         // 4. Tạo Ticket tự động gửi đến Admin (Trung tâm Số & Học liệu)

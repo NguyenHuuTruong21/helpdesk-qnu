@@ -19,8 +19,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import edu.qnu.helpdesk.dto.CreateEmailRequest;
 import edu.qnu.helpdesk.dto.UpdateInfoRequest;
 import edu.qnu.helpdesk.entity.Feedback;
 import edu.qnu.helpdesk.entity.User;
@@ -42,6 +44,58 @@ class SelfServiceImplTest {
 
     @InjectMocks
     private SelfServiceImpl selfService;
+
+    @Test
+    void requestCreateEmailUpdatesContactsBeforeCreatingTicketWhenSchoolEmailIsMissing() {
+        User user = User.builder()
+                .username("1234567890")
+                .fullName("Tên trong hồ sơ")
+                .email("student@gmail.com")
+                .phone("0987654321")
+                .personalEmail("old@example.com")
+                .build();
+        CreateEmailRequest request = CreateEmailRequest.builder()
+                .studentId("1234567890")
+                .fullName("Tên sinh viên nhập")
+                .phone("0123456789")
+                .personalEmail("new@example.com")
+                .build();
+        when(userRepository.findByUsername("1234567890")).thenReturn(Optional.of(user));
+
+        selfService.requestCreateEmail(request);
+
+        assertEquals("0123456789", user.getPhone());
+        assertEquals("new@example.com", user.getPersonalEmail());
+        assertEquals("Tên trong hồ sơ", user.getFullName());
+
+        InOrder inOrder = org.mockito.Mockito.inOrder(userRepository, feedbackRepository);
+        inOrder.verify(userRepository).save(user);
+        inOrder.verify(feedbackRepository).save(any(Feedback.class));
+    }
+
+    @Test
+    void requestCreateEmailRejectsExistingSchoolEmailWithoutUpdatingProfileOrCreatingTicket() {
+        User user = User.builder()
+                .username("1234567890")
+                .email("student@st.qnu.edu.vn")
+                .phone("0987654321")
+                .personalEmail("old@example.com")
+                .build();
+        CreateEmailRequest request = CreateEmailRequest.builder()
+                .studentId("1234567890")
+                .fullName("Tên sinh viên nhập")
+                .phone("0123456789")
+                .personalEmail("new@example.com")
+                .build();
+        when(userRepository.findByUsername("1234567890")).thenReturn(Optional.of(user));
+
+        assertThrows(BadRequestException.class, () -> selfService.requestCreateEmail(request));
+
+        assertEquals("0987654321", user.getPhone());
+        assertEquals("old@example.com", user.getPersonalEmail());
+        verify(userRepository, never()).save(any(User.class));
+        verify(feedbackRepository, never()).save(any(Feedback.class));
+    }
 
     @Test
     void updateContactInfoKeepsNewCitizenIdPendingForAdminApproval() {

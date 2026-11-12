@@ -48,7 +48,6 @@
                             <i class="bi bi-pencil-square"></i>
                         </div>
                         <h3 class="fw-bold">Cập nhật SĐT / Email cá nhân</h3>
-                        <p class="text-muted small mb-0">Tra cứu bằng MSSV. SĐT/email được cập nhật ngay sau xác minh; yêu cầu bổ sung hoặc đổi CCCD/CMND sẽ chờ admin duyệt.</p>
                     </div>
 
                     <div th:if="${successMessage}" class="alert alert-success small">
@@ -64,7 +63,7 @@
                         <div class="mb-3">
                             <div class="col-md-12 mb-3">
                                 <label class="form-label small fw-semibold">MSSV <span class="text-danger">*</span></label>
-                                <input type="text" th:field="*{studentId}" class="form-control" placeholder="MSSV 10 số" maxlength="10" required>
+                                <input type="text" th:field="*{studentId}" class="form-control" placeholder="MSSV" maxlength="10" required>
                                 <div th:if="${#fields.hasErrors('studentId')}" th:errors="*{studentId}" class="text-danger small mt-1"></div>
                             </div>
                         </div>
@@ -72,11 +71,10 @@
                         <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">2. Thông tin mới</h6>
 
                         <div class="mb-3">
-                            <label class="form-label small fw-semibold">CCCD/CMND hiện tại <span class="text-muted">(chỉ cần khi đổi SĐT/email)</span></label>
+                            <label class="form-label small fw-semibold">CCCD/CMND hiện tại</label>
                             <input type="text" th:field="*{citizenId}" class="form-control"
                                    placeholder="Không cần nhập nếu chỉ yêu cầu bổ sung/cập nhật CCCD" maxlength="12" inputmode="numeric">
                             <div th:if="${#fields.hasErrors('citizenId')}" th:errors="*{citizenId}" class="text-danger small mt-1"></div>
-                            <div class="form-text">Tra cứu chỉ hiển thị CCCD đã có hay chưa; không hiển thị số CCCD.</div>
                         </div>
 
                         <div class="mb-3">
@@ -84,7 +82,6 @@
                             <input type="text" th:field="*{newCitizenId}" class="form-control"
                                    placeholder="Không cần nhập nếu không bổ sung/cập nhật" maxlength="12" inputmode="numeric">
                             <div th:if="${#fields.hasErrors('newCitizenId')}" th:errors="*{newCitizenId}" class="text-danger small mt-1"></div>
-                            <div class="form-text">Không cần nhập CCCD hiện tại. Yêu cầu bổ sung/thay đổi chỉ được đồng bộ vào hồ sơ sau khi admin duyệt.</div>
                         </div>
 
                         <div class="row mb-3">
