@@ -1,6 +1,7 @@
 package edu.qnu.helpdesk.service.impl;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -11,6 +12,7 @@ import edu.qnu.helpdesk.entity.User;
 import edu.qnu.helpdesk.exception.BadRequestException;
 import edu.qnu.helpdesk.repository.UserRepository;
 import edu.qnu.helpdesk.service.EmailService;
+import edu.qnu.helpdesk.service.GuestTicketService;
 import edu.qnu.helpdesk.service.SelfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SelfServiceImpl implements SelfService {
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final GuestTicketService guestTicketService;
     private final edu.qnu.helpdesk.repository.FeedbackRepository feedbackRepository;
 
     @Override
@@ -121,26 +124,34 @@ public class SelfServiceImpl implements SelfService {
     @Override
     @Transactional
     public void requestCreateEmail(edu.qnu.helpdesk.dto.CreateEmailRequest request) {
-        // 1. Tìm user
-        User user = userRepository.findByUsername(request.getStudentId())
-                .orElseThrow(() -> new BadRequestException(
-                        "Không tìm thấy sinh viên với MSSV này trong hệ thống."));
+        // 1. Tìm hồ sơ; nếu chưa có thì vẫn nhận ticket khách để Admin xác minh.
+        User user = userRepository.findByUsername(request.getStudentId()).orElse(null);
 
-        // 2. Kiểm tra đã có email trường chưa
-        if (user.getEmail() != null && user.getEmail().endsWith("@st.qnu.edu.vn")) {
+        // 2. Chặn cấp mới nếu hồ sơ hiện có đã có email trường.
+        if (user != null && user.getEmail() != null
+                && user.getEmail().trim().toLowerCase(Locale.ROOT).endsWith("@st.qnu.edu.vn")) {
             throw new BadRequestException(
                     "Tài khoản đã có Email trường. Vui lòng không gửi yêu cầu cấp mới.");
         }
 
-        // 3. Tự động cập nhật thông tin liên lạc vào hồ sơ
-        user.setPhone(request.getPhone());
-        user.setPersonalEmail(request.getPersonalEmail());
-        userRepository.save(user);
+        // 3. Cập nhật liên hệ trước khi tạo ticket nếu đã có hồ sơ.
+        if (user != null) {
+            user.setPhone(request.getPhone());
+            user.setPersonalEmail(request.getPersonalEmail());
+            userRepository.save(user);
+        }
+
+        String verificationNote = user == null
+                ? "Chưa tìm thấy hồ sơ sinh viên theo MSSV trong hệ thống. Đề nghị Admin xác minh MSSV và tình trạng Email trường trước khi xử lý."
+                : "Hệ thống đã kiểm tra: sinh viên chưa có Email trường, thông tin liên lạc đã được cập nhật.";
 
         // 4. Tạo Ticket tự động gửi đến Admin (Trung tâm Số & Học liệu)
         edu.qnu.helpdesk.entity.Feedback ticket = edu.qnu.helpdesk.entity.Feedback.builder()
                 .user(user)
-                .isGuest(false)
+                .isGuest(user == null)
+                .guestName(user == null ? request.getFullName() : null)
+                .guestEmail(user == null ? request.getPersonalEmail().trim().toLowerCase(Locale.ROOT) : null)
+                .guestPhone(user == null ? request.getPhone() : null)
                 .title("[Yêu cầu cấp mới Email] MSSV " + request.getStudentId())
                 .category(edu.qnu.helpdesk.enums.FeedbackCategory.EMAIL_ACCOUNT)
                 .content(String.format("""
@@ -151,18 +162,18 @@ public class SelfServiceImpl implements SelfService {
                         - SĐT: %s
                         - Email cá nhân: %s
                         
-                        Hệ thống đã kiểm tra: sinh viên CHƯA có Email trường, thông tin liên lạc đã đầy đủ.
-                        Đề nghị TT.S&HL tạo tài khoản Email và phản hồi cho sinh viên.
+                        %s
+                        Sau khi xác minh thông tin, đề nghị TT.S&HL tạo tài khoản Email và phản hồi cho sinh viên.
                         """,
                         request.getFullName(),
                         request.getStudentId(),
                         request.getPhone(),
-                        request.getPersonalEmail()
+                        request.getPersonalEmail(),
+                        verificationNote
                 ))
                 .status(edu.qnu.helpdesk.enums.FeedbackStatus.PENDING)
                 .priority(2)
-                .trackingCode("QNU-" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
-                        + "-" + String.format("%06d", (int)(Math.random() * 999999)))
+                .trackingCode(guestTicketService.generateTrackingCode())
                 .build();
 
         feedbackRepository.save(ticket);

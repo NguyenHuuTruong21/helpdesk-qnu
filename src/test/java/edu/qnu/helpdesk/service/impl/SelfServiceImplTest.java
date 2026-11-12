@@ -30,6 +30,7 @@ import edu.qnu.helpdesk.exception.BadRequestException;
 import edu.qnu.helpdesk.repository.FeedbackRepository;
 import edu.qnu.helpdesk.repository.UserRepository;
 import edu.qnu.helpdesk.service.EmailService;
+import edu.qnu.helpdesk.service.GuestTicketService;
 
 @ExtendWith(MockitoExtension.class)
 class SelfServiceImplTest {
@@ -38,6 +39,9 @@ class SelfServiceImplTest {
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private GuestTicketService guestTicketService;
 
     @Mock
     private FeedbackRepository feedbackRepository;
@@ -61,6 +65,7 @@ class SelfServiceImplTest {
                 .personalEmail("new@example.com")
                 .build();
         when(userRepository.findByUsername("1234567890")).thenReturn(Optional.of(user));
+        when(guestTicketService.generateTrackingCode()).thenReturn("QNU-20261112-ABC123");
 
         selfService.requestCreateEmail(request);
 
@@ -68,9 +73,37 @@ class SelfServiceImplTest {
         assertEquals("new@example.com", user.getPersonalEmail());
         assertEquals("Tên trong hồ sơ", user.getFullName());
 
-        InOrder inOrder = org.mockito.Mockito.inOrder(userRepository, feedbackRepository);
+        InOrder inOrder = org.mockito.Mockito.inOrder(userRepository, guestTicketService, feedbackRepository);
         inOrder.verify(userRepository).save(user);
+        inOrder.verify(guestTicketService).generateTrackingCode();
         inOrder.verify(feedbackRepository).save(any(Feedback.class));
+    }
+
+    @Test
+    void requestCreateEmailCreatesGuestTicketWhenStudentProfileIsMissing() {
+        CreateEmailRequest request = CreateEmailRequest.builder()
+                .studentId("4551190016")
+                .fullName("Ngô Văn Hùng")
+                .phone("0906808080")
+                .personalEmail("hung@example.com")
+                .build();
+        when(userRepository.findByUsername("4551190016")).thenReturn(Optional.empty());
+        when(guestTicketService.generateTrackingCode()).thenReturn("QNU-20261112-ABC123");
+
+        selfService.requestCreateEmail(request);
+
+        ArgumentCaptor<Feedback> feedbackCaptor = ArgumentCaptor.forClass(Feedback.class);
+        verify(feedbackRepository).save(feedbackCaptor.capture());
+        Feedback ticket = feedbackCaptor.getValue();
+        assertNull(ticket.getUser());
+        assertTrue(ticket.getIsGuest());
+        assertEquals("Ngô Văn Hùng", ticket.getGuestName());
+        assertEquals("hung@example.com", ticket.getGuestEmail());
+        assertEquals("0906808080", ticket.getGuestPhone());
+        assertEquals("[Yêu cầu cấp mới Email] MSSV 4551190016", ticket.getTitle());
+        assertEquals(edu.qnu.helpdesk.enums.FeedbackStatus.PENDING, ticket.getStatus());
+        assertTrue(ticket.getContent().contains("Admin xác minh MSSV và tình trạng Email trường"));
+        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
