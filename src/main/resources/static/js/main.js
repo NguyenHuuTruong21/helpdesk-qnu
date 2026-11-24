@@ -18,6 +18,8 @@
         initRememberEmail();
         initInputFilters();
         initSmoothScroll();
+        initLiveArticleSearch();
+        initAjaxChatForms();
     });
 
     // ====================================================
@@ -210,7 +212,177 @@
     }
 
     // ====================================================
-    // 10. HELPERS
+    // 10. AJAX ARTICLE SEARCH SUGGESTIONS
+    // ====================================================
+    function initLiveArticleSearch() {
+        const form = document.getElementById('searchForm');
+        const input = document.getElementById('searchInput');
+        const suggestions = document.getElementById('searchSuggestions');
+        const content = document.getElementById('suggestionContent');
+        const clearButton = document.getElementById('clearSearchBtn');
+        if (!form || !input || !suggestions || !content) return;
+
+        let timer;
+        let controller;
+
+        function hideSuggestions() {
+            suggestions.classList.add('d-none');
+            content.replaceChildren();
+        }
+
+        function showMessage(message) {
+            const item = document.createElement('div');
+            item.className = 'p-3 text-muted small';
+            item.textContent = message;
+            content.replaceChildren(item);
+            suggestions.classList.remove('d-none');
+        }
+
+        input.addEventListener('input', function () {
+            const keyword = input.value.trim();
+            if (clearButton) clearButton.classList.toggle('d-none', keyword.length === 0);
+
+            window.clearTimeout(timer);
+            if (controller) controller.abort();
+
+            if (keyword.length < 2) {
+                hideSuggestions();
+                return;
+            }
+
+            timer = window.setTimeout(async function () {
+                controller = new AbortController();
+                showMessage('Đang tìm bài viết...');
+
+                try {
+                    const url = new URL(form.dataset.searchUrl, window.location.origin);
+                    url.searchParams.set('keyword', keyword);
+                    const response = await fetch(url, {
+                        headers: { Accept: 'application/json' },
+                        signal: controller.signal
+                    });
+                    if (!response.ok) throw new Error('Search request failed');
+
+                    const results = await response.json();
+                    content.replaceChildren();
+
+                    if (!Array.isArray(results) || results.length === 0) {
+                        showMessage('Không tìm thấy bài viết phù hợp.');
+                        return;
+                    }
+
+                    results.forEach(function (result) {
+                        const link = document.createElement('a');
+                        link.className = 'd-block p-3 text-decoration-none border-bottom';
+                        link.href = form.dataset.articleUrl + encodeURIComponent(result.slug);
+
+                        const title = document.createElement('strong');
+                        title.className = 'd-block text-dark';
+                        title.textContent = result.title;
+                        link.appendChild(title);
+
+                        if (result.summary) {
+                            const summary = document.createElement('span');
+                            summary.className = 'd-block text-muted small mt-1';
+                            summary.textContent = result.summary;
+                            link.appendChild(summary);
+                        }
+
+                        content.appendChild(link);
+                    });
+                    suggestions.classList.remove('d-none');
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        showMessage('Không thể tải gợi ý. Nhấn Enter để tìm kiếm.');
+                    }
+                }
+            }, 250);
+        });
+
+        if (clearButton) {
+            clearButton.addEventListener('click', function () {
+                input.value = '';
+                input.focus();
+                clearButton.classList.add('d-none');
+                hideSuggestions();
+            });
+        }
+
+        document.addEventListener('click', function (event) {
+            if (!form.contains(event.target) && !suggestions.contains(event.target)) {
+                hideSuggestions();
+            }
+        });
+    }
+
+    // ====================================================
+    // 11. AJAX CHAT SUBMISSION
+    // ====================================================
+    function initAjaxChatForms() {
+        document.querySelectorAll('form[data-ajax-chat]').forEach(function (form) {
+            form.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const button = form.querySelector('[type="submit"]');
+                const chatBox = document.getElementById('chatBox');
+                if (!chatBox) return;
+
+                let status = form.parentElement.querySelector('[data-chat-status]');
+                if (!status) {
+                    status = document.createElement('div');
+                    status.dataset.chatStatus = '';
+                    status.className = 'small mt-2';
+                    status.setAttribute('role', 'status');
+                    status.setAttribute('aria-live', 'polite');
+                    form.insertAdjacentElement('afterend', status);
+                }
+
+                if (button) button.disabled = true;
+                status.classList.remove('text-danger');
+                status.textContent = 'Đang gửi tin nhắn...';
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: form.method || 'POST',
+                        body: new FormData(form),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!response.ok) throw new Error('Chat request failed');
+
+                    const page = new DOMParser().parseFromString(await response.text(), 'text/html');
+                    const updatedChatBox = page.getElementById('chatBox');
+                    if (!updatedChatBox) throw new Error('Chat response is unavailable');
+
+                    chatBox.replaceWith(document.importNode(updatedChatBox, true));
+
+                    const currentStatus = document.querySelector('[data-feedback-status]');
+                    const updatedStatus = page.querySelector('[data-feedback-status]');
+                    if (currentStatus && updatedStatus) {
+                        currentStatus.replaceWith(document.importNode(updatedStatus, true));
+                    }
+
+                    document.querySelectorAll('select[name="status"]').forEach(function (select, index) {
+                        const updatedSelect = page.querySelectorAll('select[name="status"]')[index];
+                        if (updatedSelect) select.value = updatedSelect.value;
+                    });
+
+                    form.reset();
+                    status.textContent = '';
+                    const refreshedChatBox = document.getElementById('chatBox');
+                    refreshedChatBox.scrollTop = refreshedChatBox.scrollHeight;
+                    form.querySelector('input[name="message"]').focus();
+                } catch (error) {
+                    status.classList.add('text-danger');
+                    status.textContent = 'Không thể gửi tin nhắn. Vui lòng thử lại.';
+                } finally {
+                    if (button) button.disabled = false;
+                }
+            });
+        });
+    }
+
+    // ====================================================
+    // 12. HELPERS
     // ====================================================
 
     /**
@@ -232,7 +404,7 @@
     }
 
     // ====================================================
-    // 11. EXPORT GLOBAL FUNCTIONS
+    // 13. EXPORT GLOBAL FUNCTIONS
     // Các hàm gọi từ onclick="..."
     // ====================================================
 
